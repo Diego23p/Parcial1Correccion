@@ -14,31 +14,52 @@ import java.util.stream.Stream;
 
 public class MoneyLaundering
 {
-    private TransactionAnalyzer transactionAnalyzer;
+    private static TransactionAnalyzer transactionAnalyzer;
     private TransactionReader transactionReader;
     private int amountOfFilesTotal;
-    private AtomicInteger amountOfFilesProcessed;
+    private static AtomicInteger amountOfFilesProcessed;
+    private static boolean pausa=false;
+    private static ArrayList<MoneyThread> lista;
+    private int numHilos = 0;
 
-    public MoneyLaundering()
+    public MoneyLaundering(int numHilos)
     {
         transactionAnalyzer = new TransactionAnalyzer();
         transactionReader = new TransactionReader();
         amountOfFilesProcessed = new AtomicInteger();
+        this.numHilos=numHilos;
     }
 
-    public void processTransactionData()
-    {
+    public void processTransactionData() {
         amountOfFilesProcessed.set(0);
         List<File> transactionFiles = getTransactionFileList();
         amountOfFilesTotal = transactionFiles.size();
-        for(File transactionFile : transactionFiles)
-        {            
-            List<Transaction> transactions = transactionReader.readTransactionsFromFile(transactionFile);
-            for(Transaction transaction : transactions)
-            {
-                transactionAnalyzer.addTransaction(transaction);
+        
+        int porcion = amountOfFilesTotal/numHilos;
+        int inicio=0;
+        int fin=porcion;
+        lista = new ArrayList<MoneyThread>();
+        
+        for(int i=0;i<numHilos;i++){
+            if(i+1==numHilos && fin<amountOfFilesTotal){
+            	fin=amountOfFilesTotal;
             }
-            amountOfFilesProcessed.incrementAndGet();
+            
+            MoneyThread hilo = new MoneyThread(transactionFiles.subList(inicio, fin));
+            inicio = fin;
+            fin += porcion;
+            System.out.println("inicio: "+inicio+"fin: "+fin);
+            hilo.start();
+            lista.add(hilo);
+            //System.out.println("lis"+lis);
+        }
+        
+        for (MoneyThread hi : lista) {
+        	try {
+				hi.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
         }
     }
 
@@ -57,10 +78,22 @@ public class MoneyLaundering
         }
         return csvFiles;
     }
+    
+    public static boolean getPausa(){
+        return pausa;
+    }
+    
+	public static TransactionAnalyzer getTransactionAnalyzer() {
+		return transactionAnalyzer;
+	}
+	
+	public static AtomicInteger getAmountOfFilesProcessed() {
+		return amountOfFilesProcessed;
+	}
 
     public static void main(String[] args)
     {
-        MoneyLaundering moneyLaundering = new MoneyLaundering();
+        MoneyLaundering moneyLaundering = new MoneyLaundering(5);
         Thread processingThread = new Thread(() -> moneyLaundering.processTransactionData());
         processingThread.start();
         while(true)
@@ -77,6 +110,5 @@ public class MoneyLaundering
         }
 
     }
-
 
 }
