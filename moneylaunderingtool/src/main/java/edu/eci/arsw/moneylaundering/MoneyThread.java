@@ -18,10 +18,23 @@ public class MoneyThread extends Thread{
         for (File transactionFile : transactionFiles) {
             List<Transaction> transactions = transactionReader.readTransactionsFromFile(transactionFile);
             for (Transaction transaction : transactions) {
+            	synchronized(this){
+                    if(MoneyLaundering.getPausa()){;
+                        try {
+                            this.wait();
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
                 MoneyLaundering.getTransactionAnalyzer().addTransaction(transaction);
             }
         }
        MoneyLaundering.getAmountOfFilesProcessed().incrementAndGet();
+    }
+    
+    public synchronized void despausar() {
+    	this.notify();
     }
 
 }
