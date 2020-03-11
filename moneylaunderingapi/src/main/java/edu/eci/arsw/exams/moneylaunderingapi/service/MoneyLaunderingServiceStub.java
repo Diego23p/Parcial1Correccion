@@ -16,16 +16,29 @@ public class MoneyLaunderingServiceStub implements MoneyLaunderingService {
 		this.sospechosos = new CopyOnWriteArrayList<SuspectAccount>();
 	}
 	
-    @Override
-    public void updateAccountStatus(SuspectAccount suspectAccount) {
-    	for (SuspectAccount SA: sospechosos) {
-			if (suspectAccount.accountId == SA.accountId) {
-				SA.amountOfSmallTransactions += suspectAccount.amountOfSmallTransactions;
+	@Override
+    public List<SuspectAccount> getSuspectAccounts() {
+        return this.sospechosos;
+    }
+	
+	@Override
+	public void updateSuspectAccounts(SuspectAccount suspectAccount) {
+		boolean existe = false;
+		for (SuspectAccount SA: sospechosos) {
+			if (suspectAccount.accountId.equals(SA.accountId)) {
+				existe = true;
 			}
 		}
-    }
-
-    @Override
+		if (existe) {
+			this.updateAccountStatus(suspectAccount);
+		}
+		else {
+			suspectAccount.amountOfSmallTransactions += 1;
+			sospechosos.add(suspectAccount);
+		}
+	}
+	
+	@Override
     public SuspectAccount getAccountStatus(String accountId) {
     	for (SuspectAccount SA: sospechosos) {
     		if (accountId == SA.accountId) {
@@ -34,25 +47,14 @@ public class MoneyLaunderingServiceStub implements MoneyLaunderingService {
     	}
         return null;
     }
-
+	
     @Override
-    public List<SuspectAccount> getSuspectAccounts() {
-        return this.sospechosos;
-    }
-
-	@Override
-	public void updateSuspectAccounts(SuspectAccount suspectAccount) {
-		boolean existe = false;
-		for (SuspectAccount SA: sospechosos) {
-			if (suspectAccount.accountId == SA.accountId) {
-				existe = true;
+    public void updateAccountStatus(SuspectAccount suspectAccount) {
+    	for (SuspectAccount SA: sospechosos) {
+			if (suspectAccount.accountId.equals(SA.accountId)) {
+				SA.amountOfSmallTransactions += 1;
 			}
 		}
-		if (existe) {
-			this.updateAccountStatus(suspectAccount);
-		}
-		else {
-			sospechosos.add(suspectAccount);
-		}
-	}
+    }
+    
 }

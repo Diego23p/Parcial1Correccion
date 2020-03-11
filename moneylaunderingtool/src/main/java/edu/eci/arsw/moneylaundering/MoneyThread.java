@@ -19,7 +19,7 @@ public class MoneyThread extends Thread{
             List<Transaction> transactions = transactionReader.readTransactionsFromFile(transactionFile);
             for (Transaction transaction : transactions) {
             	synchronized(this){
-                    if(MoneyLaundering.getPausa()){;
+                    if(MoneyLaundering.pausa){;
                         try {
                             this.wait();
                         } catch (InterruptedException ex) {
@@ -27,10 +27,11 @@ public class MoneyThread extends Thread{
                         }
                     }
                 }
-                MoneyLaundering.getTransactionAnalyzer().addTransaction(transaction);
+                MoneyLaundering.transactionAnalyzer.addTransaction(transaction);
             }
+            MoneyLaundering.amountOfFilesProcessed.incrementAndGet();
         }
-       MoneyLaundering.getAmountOfFilesProcessed().incrementAndGet();
+       
     }
     
     public synchronized void despausar() {

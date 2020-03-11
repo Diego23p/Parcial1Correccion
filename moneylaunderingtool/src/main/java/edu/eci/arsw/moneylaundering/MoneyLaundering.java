@@ -8,18 +8,19 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class MoneyLaundering
 {
-    private static TransactionAnalyzer transactionAnalyzer;
+    public static TransactionAnalyzer transactionAnalyzer;
     private TransactionReader transactionReader;
     private int amountOfFilesTotal;
-    private static AtomicInteger amountOfFilesProcessed;
-    private static boolean pausa=false;
-    private static ArrayList<MoneyThread> lista;
+    public static AtomicInteger amountOfFilesProcessed;
+    public static boolean pausa=false;
+    private static CopyOnWriteArrayList<MoneyThread> lista;
     private int numHilos = 0;
 
     public MoneyLaundering(int numHilos)
@@ -38,21 +39,18 @@ public class MoneyLaundering
         int porcion = amountOfFilesTotal/numHilos;
         int inicio=0;
         int fin=porcion;
-        lista = new ArrayList<MoneyThread>();
+        lista = new CopyOnWriteArrayList<MoneyThread>();
         
         for(int i=0;i<numHilos;i++){
             if(i+1==numHilos && fin<amountOfFilesTotal){
             	fin=amountOfFilesTotal;
             }
-            System.out.println("inicio: "+inicio+"fin: "+fin);
             MoneyThread hilo = new MoneyThread(transactionFiles.subList(inicio, fin));
             inicio = fin;
             fin += porcion;
             hilo.start();
             lista.add(hilo);
-            //System.out.println("lis"+lis);
         }
-        
         for (MoneyThread hi : lista) {
         	try {
 				hi.join();
@@ -77,18 +75,6 @@ public class MoneyLaundering
         }
         return csvFiles;
     }
-    
-    public static boolean getPausa(){
-        return pausa;
-    }
-    
-	public static TransactionAnalyzer getTransactionAnalyzer() {
-		return transactionAnalyzer;
-	}
-	
-	public static AtomicInteger getAmountOfFilesProcessed() {
-		return amountOfFilesProcessed;
-	}
 
     public static void main(String[] args)
     {
