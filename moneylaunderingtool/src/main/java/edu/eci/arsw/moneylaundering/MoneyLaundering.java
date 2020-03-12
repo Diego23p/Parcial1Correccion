@@ -90,7 +90,12 @@ public class MoneyLaundering
                 if(pausa==false){
                     pausa=true;
                     System.out.println("Pausado");
-                    
+                    String message = "Processed %d out of %d files.\nFound %d suspect accounts:\n%s";
+                    List<String> offendingAccounts = moneyLaundering.getOffendingAccounts();
+                    String suspectAccounts = offendingAccounts.stream().reduce("", (s1, s2)-> s1 + "\n"+s2);
+                    message = String.format(message, moneyLaundering.amountOfFilesProcessed.get(), moneyLaundering.amountOfFilesTotal, offendingAccounts.size(), suspectAccounts);
+                    System.out.println(message);
+
                 }
                 else if(pausa==true){
                     pausa=false;
@@ -99,12 +104,7 @@ public class MoneyLaundering
                         hi.despausar();
                     }
                 }
-            }
-            String message = "Processed %d out of %d files.\nFound %d suspect accounts:\n%s";
-            List<String> offendingAccounts = moneyLaundering.getOffendingAccounts();
-            String suspectAccounts = offendingAccounts.stream().reduce("", (s1, s2)-> s1 + "\n"+s2);
-            message = String.format(message, moneyLaundering.amountOfFilesProcessed.get(), moneyLaundering.amountOfFilesTotal, offendingAccounts.size(), suspectAccounts);
-            System.out.println(message);
+            } 
         }
 
     }
